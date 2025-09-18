@@ -10,13 +10,13 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-8">
       <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-8">
-        <img src="/living-rivers/images/explore-your-nature.jpeg" alt="Product" className="rounded-lg mb-4" />
+        <img src="/images/explore-your-nature.jpeg" alt="Product" className="rounded-lg mb-4" />
         
         <p className="text-gray-600 mb-4 text-center">
           This course is designed to help you discover insights towards the connection to oneself as well as a greater connection to all. 
           Whether you're looking for personal growth, inspiration, or simply a new approach to your inner landscape, this course has something for everyone. <br/>
           <br/>
-          <strong>Unlock instant access to Jordan Rivers course on how to "Explore your Nature"</strong>
+          <strong>Unlock instant access to Jordan River's course on how to "Explore your Nature"</strong>
           <br/>
           <br/>
         <button
@@ -51,8 +51,8 @@ export default function CheckoutPage() {
         </p>
         <p className="text-green-900 mb-6 text-center italic text-2xl">Exploration.
         </p>
-        <img src="/living-rivers/images/receive.png" alt="what youll get" className="rounded-lg mb-4" />
-        <img src="/living-rivers/images/whoami.jpg" alt="what youll get" className="rounded-lg mb-4" />
+        <img src="/images/receive.png" alt="what youll get" className="rounded-lg mb-4" />
+        <img src="/images/whoami.jpg" alt="what youll get" className="rounded-lg mb-4" />
         
         {/* Square Checkout Button */}
         <div ref={formRef} className="w-full flex flex-col items-center">
@@ -66,14 +66,14 @@ export default function CheckoutPage() {
             className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-4 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
           >
             <img
-              src="/living-rivers/images/Square_LogoLockup_Black.png"
+              src="/images/Square_LogoLockup_Black.png"
               alt="Square"
               className="h-18 w-auto"
             />
             (33.00 USD)
           </a>
           <br/>
-          <p className="text-gray-600 text-sm items-center">Or click this link to receive the download and explore solo:</p>
+          {/* <p className="text-gray-600 text-sm items-center">Or click this link to receive the download and explore solo:</p>
           <a
             href="https://square.link/u/jRQ9akdZ"
             target="_blank"
@@ -81,12 +81,12 @@ export default function CheckoutPage() {
             className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-4 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
           >
             <img
-              src="/living-rivers/images/Square_LogoLockup_Black.png"
+              src="/images/Square_LogoLockup_Black.png"
               alt="Square"
               className="h-18 w-auto"
             />
             (9.00 USD)
-          </a>
+          </a> */}
           {/* Trust Badges */}
           <div className="flex items-center justify-center gap-2 mt-6">
             <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 11V7a4 4 0 1 1 8 0v4M5 11V7a7 7 0 0 1 14 0v4M5 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11"></path></svg>
