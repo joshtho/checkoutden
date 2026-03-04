@@ -1,8 +1,144 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// ===========================================================================
+// Theme presets & best-practice tips
+// ===========================================================================
+const THEME_PRESETS = [
+  { name: 'Forest', primary: '#14532d', secondary: '#16a34a', accent: '#166534' },
+  { name: 'Ocean', primary: '#1e3a8a', secondary: '#3b82f6', accent: '#1d4ed8' },
+  { name: 'Royal', primary: '#581c87', secondary: '#a855f7', accent: '#7e22ce' },
+  { name: 'Sunset', primary: '#9a3412', secondary: '#f97316', accent: '#ea580c' },
+  { name: 'Rose', primary: '#9f1239', secondary: '#fb7185', accent: '#e11d48' },
+  { name: 'Slate', primary: '#1e293b', secondary: '#64748b', accent: '#475569' },
+];
+
+const TIPS = {
+  heroImage:
+    "This is the first thing visitors see. Use a high-quality, relevant image (1200\u00d7630px) that immediately communicates what you're offering.",
+  description:
+    'Keep it concise and benefit-focused. Lead with what the customer gains \u2014 not features. 2-3 short paragraphs is ideal.',
+  ctaButton:
+    'Use clear, action-driven text like \"Get Instant Access\" or \"Start Now\". Avoid vague labels like \"Submit\".',
+  price:
+    'Display the price prominently \u2014 no surprises. If offering a discount, show the original crossed out beside the new price.',
+  italicText:
+    'This is your emotional hook \u2014 speak to the pain point your product solves. Keep it authentic and conversational.',
+  secondaryText:
+    'Bridge the emotional hook to the call-to-action. Reinforce the transformation your product delivers.',
+  closingWord:
+    'A single powerful word or phrase that encapsulates your offer \u2014 think of it as your tagline.',
+  additionalImage:
+    "Supporting visuals build trust: show what's included, a preview, social proof, or your face. People buy from people.",
+  checkoutTitle:
+    'Restate the offer or ask a yes-question (\"Ready to transform?\"). Last thing they read before paying.',
+  subtitle:
+    'A brief line that tells the buyer exactly what to do next. Keep it to one sentence.',
+  checkoutUrl:
+    'Paste your payment link (Square, Stripe, Gumroad, etc.). Always test it before publishing!',
+  footer:
+    'Your name or brand adds legitimacy. Keep it simple.',
+};
+
+// ===========================================================================
+// BuilderTip \u2014 hover/tap tooltip with best-practice advice
+// ===========================================================================
+function BuilderTip({ tip, children, className = '' }) {
+  const [show, setShow] = useState(false);
+  const timeoutRef = useRef(null);
+  const tipRef = useRef(null);
+
+  const open = () => { clearTimeout(timeoutRef.current); setShow(true); };
+  const close = () => { timeoutRef.current = setTimeout(() => setShow(false), 150); };
+  const toggle = (e) => { e.stopPropagation(); e.preventDefault(); setShow((s) => !s); };
+
+  useEffect(() => {
+    if (!show) return;
+    const handler = (e) => {
+      if (tipRef.current && !tipRef.current.contains(e.target)) setShow(false);
+    };
+    document.addEventListener('pointerdown', handler);
+    return () => document.removeEventListener('pointerdown', handler);
+  }, [show]);
+
+  if (!tip) return <div className={className}>{children}</div>;
+
+  return (
+    <div
+      ref={tipRef}
+      className={`relative group/tip w-full ${className}`}
+      onMouseEnter={open}
+      onMouseLeave={close}
+    >
+      {children}
+      <button
+        onClick={toggle}
+        className="absolute -top-1.5 -left-1.5 z-20 w-5 h-5 bg-amber-400 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-sm cursor-pointer select-none sm:opacity-0 sm:group-hover/tip:opacity-80 transition-opacity"
+        aria-label="Best practice tip"
+      >
+        ?
+      </button>
+      {show && (
+        <div className="absolute left-0 right-0 bottom-full mb-2 z-50 px-2">
+          <div className="bg-gray-900 text-white text-xs leading-relaxed rounded-xl px-4 py-3 shadow-xl max-w-sm mx-auto relative">
+            <span className="font-semibold text-amber-300 text-[11px] uppercase tracking-wide block mb-1">
+              \ud83d\udca1 Best Practice
+            </span>
+            <p>{tip}</p>
+            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-gray-900" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===========================================================================
+// ColorPickerDot \u2014 per-element color override
+// ===========================================================================
+function ColorPickerDot({ color, onChange, presets }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', handler);
+    return () => document.removeEventListener('pointerdown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="absolute -top-1.5 -right-1.5 z-20">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        className="w-5 h-5 rounded-full border-2 border-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
+        style={{ backgroundColor: color }}
+        aria-label="Change color"
+      />
+      {open && (
+        <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-200 p-2 flex flex-wrap gap-1.5 w-36 z-50">
+          {presets.map((c) => (
+            <button
+              key={c}
+              onClick={(e) => { e.stopPropagation(); onChange(c); setOpen(false); }}
+              className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${color === c ? 'border-gray-800 ring-1 ring-gray-400' : 'border-gray-200'}`}
+              style={{ backgroundColor: c }}
+              aria-label={c}
+            />
+          ))}
+          <label className="w-full mt-1">
+            <input type="color" value={color} onChange={(e) => onChange(e.target.value)} className="w-full h-6 cursor-pointer rounded border-0 p-0" />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
-// Inline‑editable text block (Medium‑style: click to type, placeholder shown)
+// Inline-editable text block (Medium-style: click to type, placeholder shown)
 // ---------------------------------------------------------------------------
 function EditableText({
   value,
@@ -11,6 +147,10 @@ function EditableText({
   className = '',
   tag: Tag = 'p',
   multiline = false,
+  style: customStyle,
+  pickerColor,
+  onColorChange,
+  colorPresets,
 }) {
   const ref = useRef(null);
   const [focused, setFocused] = useState(false);
@@ -44,25 +184,32 @@ function EditableText({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onKeyDown={handleKeyDown}
+        style={customStyle}
         className={`
-          outline-none transition-all min-h-[1.5em]
+          outline-none transition-all min-h-[1.5em] cursor-text
           ${className}
-          ${!focused ? 'hover:ring-2 hover:ring-blue-300 hover:ring-offset-2 rounded' : ''}
-          ${focused ? 'ring-2 ring-blue-500 ring-offset-2 rounded' : ''}
+          ${!focused ? 'hover:ring-1 hover:ring-blue-200 hover:ring-offset-1 rounded hover:bg-blue-50/30' : ''}
+          ${focused ? 'ring-2 ring-blue-500 ring-offset-2 rounded bg-white' : ''}
         `}
       />
       {isEmpty && !focused && (
         <span
-          className={`absolute inset-0 pointer-events-none select-none ${className} opacity-40`}
+          className={`absolute inset-0 pointer-events-none select-none ${className} opacity-30 italic`}
           aria-hidden
         >
           {placeholder}
         </span>
       )}
-      {isEmpty && !focused && (
-        <span className="absolute -top-5 left-0 text-[10px] font-medium text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-          Click to edit
+      {/* Subtle pencil icon on hover */}
+      {!focused && (
+        <span className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm pointer-events-none">
+          ✎
         </span>
+      )}
+      {pickerColor && onColorChange && colorPresets && (
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <ColorPickerDot color={pickerColor} onChange={onColorChange} presets={colorPresets} />
+        </div>
       )}
     </div>
   );
@@ -138,22 +285,39 @@ export default function CheckoutBuilder() {
   const formRef = useRef(null);
 
   const [pageData, setPageData] = useState({
-    mainImage: '',
-    description: '',
-    price: '',
-    italicText: '',
-    secondaryText: '',
-    closingWord: '',
-    additionalImages: ['', ''],
-    title: '',
-    checkoutUrl: '',
+    theme: { ...THEME_PRESETS[0] },
+    mainImage: '/images/explore-your-nature.jpeg',
+    description:
+      'This course is designed to help you discover insights towards the connection to oneself as well as a greater connection to all.\n\nWhether you\'re looking for personal growth, inspiration, or simply a new approach to your inner landscape, this course has something for everyone.\n\nUnlock instant access to Jordan River\'s course on how to "Explore your Nature"',
+    price: '33.00',
+    italicText:
+      'Feeling disconnected in a fast-paced world? Your true nature is waiting to be explored.\n\nIn a world that moves fast, pause and come home to yourself.\n\nYou weren\'t made to keep up — you were made to root down, remember, and rise up!\n\nIf you\'re feeling lost, uninspired, and overwhelmed: That\'s not who you are — it\'s just a sign you\'ve been too far from your nature.\n\nBehind the noise of modern life is a quiet truth: your nature holds the key to your joy.',
+    secondaryText:
+      'In an ever-evolving world, it\'s easy to feel out of sync — constantly chasing results... yet feeling uninspired, lost, or alone. But your true nature hasn\'t gone anywhere. It\'s quietly waiting behind the noise.\n\nAnd the key to reconnecting?',
+    closingWord: 'Exploration.',
+    additionalImages: ['/images/receive.png', '/images/whoami.jpg'],
+    title: 'Ready to explore your nature?',
+    subtitle: 'Click below for a one on one exploration with a trusted guide:',
+    checkoutUrl: 'https://square.link/u/JaOryQ09',
     ctaLabel: 'Scroll to Checkout',
+    footerName: 'Jordan Rivers',
+    colors: {},
   });
 
   const [preview, setPreview] = useState(false);
 
   const set = (field) => (val) =>
     setPageData((prev) => ({ ...prev, [field]: val }));
+
+  const setColor = (field) => (color) =>
+    setPageData((prev) => ({ ...prev, colors: { ...prev.colors, [field]: color } }));
+
+  const getColor = (field, themeKey = 'primary') =>
+    pageData.colors[field] || pageData.theme[themeKey];
+
+  const colorPresets = [
+    ...THEME_PRESETS.flatMap((t) => [t.primary, t.secondary, t.accent]),
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   const handleAdditionalImage = (idx, val) => {
     const imgs = [...pageData.additionalImages];
@@ -177,6 +341,14 @@ export default function CheckoutBuilder() {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const applyTheme = (preset) => {
+    setPageData((prev) => ({
+      ...prev,
+      theme: { ...preset },
+      colors: {},
+    }));
+  };
+
   const handleSave = () => {
     const pageId = Date.now().toString();
     const saved = JSON.parse(localStorage.getItem('checkoutPages') || '{}');
@@ -190,8 +362,8 @@ export default function CheckoutBuilder() {
   // -----------------------------------------------------------------------
   if (preview) {
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8">
-        <div className="sticky top-0 z-50 w-full max-w-xl flex justify-between items-center bg-white/90 backdrop-blur border-b border-gray-200 px-6 py-3 rounded-t-2xl mb-0">
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-4">
+        <div className="sticky top-0 z-50 w-full max-w-xl flex justify-between items-center bg-white/90 backdrop-blur border-b border-gray-200 px-4 sm:px-6 py-3 rounded-t-2xl mb-0">
           <span className="text-sm font-semibold text-gray-500">Preview Mode</span>
           <button
             onClick={() => setPreview(false)}
@@ -201,65 +373,67 @@ export default function CheckoutBuilder() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-8">
+        <div className="bg-white rounded-b-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-5 sm:p-8">
           {pageData.mainImage && (
             <img src={pageData.mainImage} alt="Product" className="rounded-lg mb-4 w-full object-cover" />
           )}
-          <p className="text-gray-600 mb-4 text-center whitespace-pre-line">
-            {pageData.description}
-            {pageData.description && (
-              <>
-                <br /><br />
+          {pageData.description && (
+            <div className="text-gray-600 mb-6 text-center whitespace-pre-line">
+              <p>{pageData.description}</p>
+              <div className="mt-6 flex justify-center">
                 <button
                   onClick={handleScrollToCheckout}
-                  className="mb-1 px-6 py-2 bg-green-900 text-white rounded font-semibold shadow hover:bg-green-800 transition cursor-pointer"
+                  className="px-6 py-2 text-white rounded font-semibold shadow hover:opacity-90 transition cursor-pointer"
+                  style={{ backgroundColor: getColor('ctaButton', 'primary') }}
                 >
                   {pageData.ctaLabel || 'Scroll to Checkout'}
                 </button>
-              </>
-            )}
-          </p>
+              </div>
+            </div>
+          )}
           {pageData.price && (
-            <>
-              <div className="text-2xl font-bold text-green-900 mb-2">${pageData.price}</div>
-              <div className="text-green-600 font-semibold mb-4">You're almost there!</div>
-            </>
+            <div className="mb-4 text-center">
+              <div className="text-2xl font-bold mb-1" style={{ color: getColor('price', 'primary') }}>${pageData.price}</div>
+              <div className="font-semibold" style={{ color: getColor('almostThere', 'secondary') }}>You're almost there!</div>
+            </div>
           )}
           {pageData.italicText && (
-            <p className="text-green-900 mb-4 text-center italic text-lg whitespace-pre-line">{pageData.italicText}</p>
+            <p className="mb-6 text-center italic text-lg whitespace-pre-line" style={{ color: getColor('italicText', 'accent') }}>{pageData.italicText}</p>
           )}
           {pageData.secondaryText && (
             <p className="text-gray-600 mb-2 text-center whitespace-pre-line">{pageData.secondaryText}</p>
           )}
           {pageData.closingWord && (
-            <p className="text-green-900 mb-6 text-center italic text-2xl">{pageData.closingWord}</p>
+            <p className="mb-8 text-center italic text-2xl" style={{ color: getColor('closingWord', 'primary') }}>{pageData.closingWord}</p>
           )}
           {pageData.additionalImages.filter(Boolean).map((img, i) => (
             <img key={i} src={img} alt={`Supplementary ${i + 1}`} className="rounded-lg mb-4 w-full object-cover" />
           ))}
-          <div ref={formRef} className="w-full flex flex-col items-center">
-            <br />
-            <h1 className="text-2xl font-bold text-green-800 mb-4">{pageData.title || 'Your heading here'}</h1>
+          <div ref={formRef} className="w-full flex flex-col items-center pt-8">
+            <h1 className="text-2xl font-bold mb-4 text-center" style={{ color: getColor('title', 'accent') }}>{pageData.title || 'Your heading here'}</h1>
+            {pageData.subtitle && (
+              <p className="text-gray-600 text-sm mb-4 text-center">{pageData.subtitle}</p>
+            )}
             {pageData.checkoutUrl && (
               <a
                 href={pageData.checkoutUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-4 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
+                className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-2 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
               >
                 <img src="/images/Square_LogoLockup_Black.png" alt="Square" className="h-18 w-auto" />
                 ({pageData.price ? `$${pageData.price}` : '—'} USD)
               </a>
             )}
             <div className="flex items-center justify-center gap-2 mt-6">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{ color: getColor('secure', 'secondary') }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M12 11V7a4 4 0 1 1 8 0v4M5 11V7a7 7 0 0 1 14 0v4M5 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" />
               </svg>
               <span className="text-gray-600 text-sm">100% Secure Checkout</span>
             </div>
           </div>
           <footer className="mt-8 text-center text-gray-600 text-sm">
-            <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} {pageData.footerName || 'Your Name'}. All rights reserved.</p>
           </footer>
         </div>
       </div>
@@ -267,117 +441,178 @@ export default function CheckoutBuilder() {
   }
 
   // -----------------------------------------------------------------------
-  // Editor mode — the card IS the form (Medium‑style)
+  // Editor mode
   // -----------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8 px-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-3 sm:px-4">
       {/* Sticky toolbar */}
-      <div className="sticky top-0 z-50 w-full max-w-xl flex justify-between items-center bg-white/90 backdrop-blur shadow-sm border-b border-gray-200 px-6 py-3 rounded-t-2xl">
-        <span className="text-sm font-semibold text-gray-500 tracking-wide">Editing checkout page</span>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setPreview(true)}
-            className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
-          >
-            Preview
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition"
-          >
-            Save &amp; Publish
-          </button>
+      <div className="sticky top-0 z-50 w-full max-w-xl bg-white/95 backdrop-blur-md shadow-sm border border-gray-200 rounded-xl mb-4 overflow-hidden">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm font-medium text-gray-600 tracking-wide hidden sm:inline">Editing</span>
+          </div>
+          <p className="text-xs text-gray-400 hidden md:block">Click any text or image to edit</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPreview(true)}
+              className="px-3 sm:px-4 py-1.5 bg-gray-100 text-gray-700 text-xs sm:text-sm rounded-lg hover:bg-gray-200 transition border border-gray-200"
+            >
+              👁 Preview
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-3 sm:px-4 py-1.5 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 transition shadow-sm"
+            >
+              Save &amp; Publish
+            </button>
+          </div>
+        </div>
+        {/* Theme colour selector */}
+        <div className="border-t border-gray-100 px-4 sm:px-6 py-2 flex items-center gap-3 overflow-x-auto">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Theme</span>
+          {THEME_PRESETS.map((preset) => (
+            <button
+              key={preset.name}
+              onClick={() => applyTheme(preset)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition whitespace-nowrap cursor-pointer ${
+                pageData.theme.primary === preset.primary
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <span
+                className="w-3 h-3 rounded-full border border-white/50 shadow-sm inline-block"
+                style={{ backgroundColor: preset.primary }}
+              />
+              {preset.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* The "card" — same layout as CheckoutPage */}
-      <div className="bg-white rounded-b-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-8">
+      {/* The card — same layout as CheckoutPage */}
+      <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-5 sm:p-8">
         {/* Hero image */}
-        <EditableImage
-          src={pageData.mainImage}
-          onChangeSrc={set('mainImage')}
-          alt="Product"
-          className="mb-4"
-        />
+        <BuilderTip tip={TIPS.heroImage}>
+          <EditableImage
+            src={pageData.mainImage}
+            onChangeSrc={set('mainImage')}
+            alt="Product"
+            className="mb-4"
+          />
+        </BuilderTip>
 
         {/* Description */}
-        <EditableText
-          value={pageData.description}
-          onChange={set('description')}
-          placeholder="Write your product description here…"
-          className="text-gray-600 mb-4 text-center whitespace-pre-wrap"
-          multiline
-        />
+        <BuilderTip tip={TIPS.description}>
+          <EditableText
+            value={pageData.description}
+            onChange={set('description')}
+            placeholder="Write your product description here…"
+            className="text-gray-600 mb-4 text-center whitespace-pre-wrap"
+            multiline
+          />
+        </BuilderTip>
 
         {/* CTA button label */}
-        <EditableText
-          value={pageData.ctaLabel}
-          onChange={set('ctaLabel')}
-          placeholder="Scroll to Checkout"
-          className="mb-1 inline-block px-6 py-2 bg-green-900 text-white rounded font-semibold shadow text-center"
-          tag="span"
-        />
+        <BuilderTip tip={TIPS.ctaButton} className="flex justify-center">
+          <EditableText
+            value={pageData.ctaLabel}
+            onChange={set('ctaLabel')}
+            placeholder="Scroll to Checkout"
+            className="inline-block px-6 py-2 text-white rounded font-semibold shadow text-center"
+            tag="span"
+            style={{ backgroundColor: getColor('ctaButton', 'primary') }}
+            pickerColor={getColor('ctaButton', 'primary')}
+            onColorChange={setColor('ctaButton')}
+            colorPresets={colorPresets}
+          />
+        </BuilderTip>
 
-        <div className="h-4" />
+        <div className="h-6" />
 
         {/* Price */}
-        <div className="flex items-center gap-1 mb-2">
-          <span className="text-2xl font-bold text-green-900">$</span>
-          <EditableText
-            value={pageData.price}
-            onChange={set('price')}
-            placeholder="0.00"
-            className="text-2xl font-bold text-green-900"
-            tag="span"
-          />
-        </div>
-        <div className="text-green-600 font-semibold mb-4">You're almost there!</div>
+        <BuilderTip tip={TIPS.price}>
+          <div className="flex items-center justify-center gap-1 mb-2">
+            <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>$</span>
+            <EditableText
+              value={pageData.price}
+              onChange={set('price')}
+              placeholder="0.00"
+              className="text-2xl font-bold"
+              tag="span"
+              style={{ color: getColor('price', 'primary') }}
+              pickerColor={getColor('price', 'primary')}
+              onColorChange={setColor('price')}
+              colorPresets={colorPresets}
+            />
+          </div>
+          <div className="font-semibold mb-4 text-center" style={{ color: getColor('almostThere', 'secondary') }}>
+            You're almost there!
+          </div>
+        </BuilderTip>
 
         {/* Italic emphasis text */}
-        <EditableText
-          value={pageData.italicText}
-          onChange={set('italicText')}
-          placeholder="Add compelling emphasis text here…"
-          className="text-green-900 mb-4 text-center italic text-lg whitespace-pre-wrap"
-          multiline
-        />
+        <BuilderTip tip={TIPS.italicText}>
+          <EditableText
+            value={pageData.italicText}
+            onChange={set('italicText')}
+            placeholder="Add compelling emphasis text here…"
+            className="mb-6 text-center italic text-lg whitespace-pre-wrap"
+            multiline
+            style={{ color: getColor('italicText', 'accent') }}
+            pickerColor={getColor('italicText', 'accent')}
+            onColorChange={setColor('italicText')}
+            colorPresets={colorPresets}
+          />
+        </BuilderTip>
 
         {/* Secondary body text */}
-        <EditableText
-          value={pageData.secondaryText}
-          onChange={set('secondaryText')}
-          placeholder="Add more details about your offering…"
-          className="text-gray-600 mb-2 text-center whitespace-pre-wrap"
-          multiline
-        />
+        <BuilderTip tip={TIPS.secondaryText}>
+          <EditableText
+            value={pageData.secondaryText}
+            onChange={set('secondaryText')}
+            placeholder="Add more details about your offering…"
+            className="text-gray-600 mb-2 text-center whitespace-pre-wrap"
+            multiline
+          />
+        </BuilderTip>
 
         {/* Closing word */}
-        <EditableText
-          value={pageData.closingWord}
-          onChange={set('closingWord')}
-          placeholder="Exploration."
-          className="text-green-900 mb-6 text-center italic text-2xl"
-          tag="span"
-        />
+        <BuilderTip tip={TIPS.closingWord} className="flex justify-center">
+          <EditableText
+            value={pageData.closingWord}
+            onChange={set('closingWord')}
+            placeholder="Exploration."
+            className="mb-8 text-center italic text-2xl"
+            tag="span"
+            style={{ color: getColor('closingWord', 'primary') }}
+            pickerColor={getColor('closingWord', 'primary')}
+            onColorChange={setColor('closingWord')}
+            colorPresets={colorPresets}
+          />
+        </BuilderTip>
 
         {/* Additional images */}
-        <div className="w-full space-y-4 mb-4">
+        <div className="w-full space-y-4 mb-6">
           {pageData.additionalImages.map((img, idx) => (
-            <div key={idx} className="relative">
-              <EditableImage
-                src={img}
-                onChangeSrc={(val) => handleAdditionalImage(idx, val)}
-                alt={`Additional ${idx + 1}`}
-              />
-              {pageData.additionalImages.length > 1 && (
-                <button
-                  onClick={() => removeImage(idx)}
-                  className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full opacity-70 hover:opacity-100 transition"
-                >
-                  ✕ Remove
-                </button>
-              )}
-            </div>
+            <BuilderTip key={idx} tip={TIPS.additionalImage}>
+              <div className="relative">
+                <EditableImage
+                  src={img}
+                  onChangeSrc={(val) => handleAdditionalImage(idx, val)}
+                  alt={`Additional ${idx + 1}`}
+                />
+                {pageData.additionalImages.length > 1 && (
+                  <button
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full opacity-70 hover:opacity-100 transition z-10"
+                  >
+                    ✕ Remove
+                  </button>
+                )}
+              </div>
+            </BuilderTip>
           ))}
           <button
             onClick={addImage}
@@ -388,23 +623,42 @@ export default function CheckoutBuilder() {
         </div>
 
         {/* Checkout section */}
-        <div ref={formRef} className="w-full flex flex-col items-center">
-          <EditableText
-            value={pageData.title}
-            onChange={set('title')}
-            placeholder="Ready to explore your nature?"
-            className="text-2xl font-bold text-green-800 mb-4 text-center"
-            tag="h1"
-          />
+        <div ref={formRef} className="w-full flex flex-col items-center pt-8">
+          <BuilderTip tip={TIPS.checkoutTitle}>
+            <EditableText
+              value={pageData.title}
+              onChange={set('title')}
+              placeholder="Ready to explore your nature?"
+              className="text-2xl font-bold mb-4 text-center"
+              tag="h1"
+              style={{ color: getColor('title', 'accent') }}
+              pickerColor={getColor('title', 'accent')}
+              onColorChange={setColor('title')}
+              colorPresets={colorPresets}
+            />
+          </BuilderTip>
 
-          <p className="text-gray-600 text-sm mb-2 text-center">Checkout link (paste your Square or payment URL)</p>
-          <input
-            type="url"
-            value={pageData.checkoutUrl}
-            onChange={(e) => set('checkoutUrl')(e.target.value)}
-            placeholder="https://square.link/u/…"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
-          />
+          <BuilderTip tip={TIPS.subtitle}>
+            <EditableText
+              value={pageData.subtitle}
+              onChange={set('subtitle')}
+              placeholder="Click below for a one on one exploration with a trusted guide:"
+              className="text-gray-600 text-sm text-center mb-3"
+            />
+          </BuilderTip>
+
+          <BuilderTip tip={TIPS.checkoutUrl}>
+            <div className="w-full relative mb-4">
+              <input
+                type="url"
+                value={pageData.checkoutUrl}
+                onChange={(e) => set('checkoutUrl')(e.target.value)}
+                placeholder="https://square.link/u/…"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-gray-500"
+              />
+              <span className="absolute -top-2 left-2 text-[10px] font-medium text-gray-400 bg-white px-1">Payment link</span>
+            </div>
+          </BuilderTip>
 
           <div className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg text-center flex items-center justify-center gap-2">
             <img src="/images/Square_LogoLockup_Black.png" alt="Square" className="h-18 w-auto" />
@@ -412,16 +666,26 @@ export default function CheckoutBuilder() {
           </div>
 
           <div className="flex items-center justify-center gap-2 mt-6">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" style={{ color: getColor('secure', 'secondary') }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M12 11V7a4 4 0 1 1 8 0v4M5 11V7a7 7 0 0 1 14 0v4M5 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" />
             </svg>
             <span className="text-gray-600 text-sm">100% Secure Checkout</span>
           </div>
         </div>
 
-        <footer className="mt-8 text-center text-gray-600 text-sm">
-          <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
-        </footer>
+        <BuilderTip tip={TIPS.footer}>
+          <footer className="mt-8 text-center text-gray-600 text-sm">
+            <span>&copy; {new Date().getFullYear()}{' '}</span>
+            <EditableText
+              value={pageData.footerName}
+              onChange={set('footerName')}
+              placeholder="Your Name"
+              className="inline text-gray-600 text-sm"
+              tag="span"
+            />
+            <span>. All rights reserved.</span>
+          </footer>
+        </BuilderTip>
       </div>
 
       <button
