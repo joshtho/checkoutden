@@ -30,37 +30,21 @@ function HomePage() {
               </Link>
             </div>
             
-            {/* Placeholder for future projects */}
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow opacity-60">
+            {/* Create Your Own Card */}
+            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
               <div className="h-48 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-white text-xl font-bold">Coming Soon</span>
+                <span className="text-white text-2xl font-bold">Create Yours</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Project Alpha</h3>
+              <h3 className="text-xl font-semibold mb-2">Build Your Own</h3>
               <p className="text-gray-600 mb-4">
-                Next innovative checkout solution in development.
+                Create your custom checkout page with your own content and images.
               </p>
-              <button 
-                disabled 
-                className="inline-block bg-gray-400 text-white px-6 py-2 rounded-lg cursor-not-allowed"
+              <Link 
+                to="/create" 
+                className="inline-block bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Coming Soon
-              </button>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow opacity-60">
-              <div className="h-48 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-white text-xl font-bold">Coming Soon</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Project Beta</h3>
-              <p className="text-gray-600 mb-4">
-                Another exciting project on the horizon.
-              </p>
-              <button 
-                disabled 
-                className="inline-block bg-gray-400 text-white px-6 py-2 rounded-lg cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+                Get Started →
+              </Link>
             </div>
           </div>
         </div>
