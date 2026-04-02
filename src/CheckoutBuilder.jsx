@@ -45,17 +45,56 @@ const TIPS = {
 // ===========================================================================
 function BuilderTip({ tip, children, className = '' }) {
   const [show, setShow] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const timeoutRef = useRef(null);
   const tipRef = useRef(null);
+  const btnRef = useRef(null);
+  const [openBelow, setOpenBelow] = useState(false);
 
-  const open = () => { clearTimeout(timeoutRef.current); setShow(true); };
-  const close = () => { timeoutRef.current = setTimeout(() => setShow(false), 150); };
-  const toggle = (e) => { e.stopPropagation(); e.preventDefault(); setShow((s) => !s); };
+  const calcDirection = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setOpenBelow(rect.top < 200);
+    }
+  };
+
+  const toggle = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    clearTimeout(timeoutRef.current);
+    if (!show || !pinned) {
+      calcDirection();
+      setShow(true);
+      setPinned(true);
+      // Auto-dismiss after 5 seconds
+      timeoutRef.current = setTimeout(() => {
+        setShow(false);
+        setPinned(false);
+      }, 10000);
+    } else {
+      setShow(false);
+      setPinned(false);
+    }
+  };
+  const openOnHover = () => {
+    if (pinned) return;
+    clearTimeout(timeoutRef.current);
+    calcDirection();
+    setShow(true);
+  };
+  const closeOnHover = () => {
+    if (pinned) return;
+    timeoutRef.current = setTimeout(() => setShow(false), 150);
+  };
 
   useEffect(() => {
     if (!show) return;
     const handler = (e) => {
-      if (tipRef.current && !tipRef.current.contains(e.target)) setShow(false);
+      if (tipRef.current && !tipRef.current.contains(e.target)) {
+        clearTimeout(timeoutRef.current);
+        setShow(false);
+        setPinned(false);
+      }
     };
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
@@ -67,25 +106,26 @@ function BuilderTip({ tip, children, className = '' }) {
     <div
       ref={tipRef}
       className={`relative group/tip w-full ${className}`}
-      onMouseEnter={open}
-      onMouseLeave={close}
     >
       {children}
       <button
+        ref={btnRef}
         onClick={toggle}
+        onMouseEnter={openOnHover}
+        onMouseLeave={closeOnHover}
         className="absolute -top-1.5 -left-1.5 z-20 w-5 h-5 bg-amber-400 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-sm cursor-pointer select-none sm:opacity-0 sm:group-hover/tip:opacity-80 transition-opacity"
         aria-label="Best practice tip"
       >
         ?
       </button>
       {show && (
-        <div className="absolute left-0 right-0 bottom-full mb-2 z-50 px-2">
+        <div className={`absolute left-0 right-0 z-50 px-2 ${openBelow ? 'top-full mt-2' : 'bottom-full mb-2'}`}>
           <div className="bg-gray-900 text-white text-xs leading-relaxed rounded-xl px-4 py-3 shadow-xl max-w-sm mx-auto relative">
             <span className="font-semibold text-amber-300 text-[11px] uppercase tracking-wide block mb-1">
-              \ud83d\udca1 Best Practice
+              💡 Best Practice
             </span>
             <p>{tip}</p>
-            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-gray-900" />
+            <div className={`absolute left-1/2 -translate-x-1/2 w-0 h-0 border-x-[6px] border-x-transparent ${openBelow ? 'bottom-full border-b-[6px] border-b-gray-900' : 'top-full border-t-[6px] border-t-gray-900'}`} />
           </div>
         </div>
       )}
@@ -98,6 +138,8 @@ function BuilderTip({ tip, children, className = '' }) {
 // ===========================================================================
 function ColorPickerDot({ color, onChange, presets }) {
   const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const [dropLeft, setDropLeft] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -109,16 +151,31 @@ function ColorPickerDot({ color, onChange, presets }) {
     return () => document.removeEventListener('pointerdown', handler);
   }, [open]);
 
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      // Open upward if there's enough space above
+      setDropUp(rect.top > 200);
+      // Open leftward if within 160px of the right edge (dropdown is 144px / w-36)
+      setDropLeft(window.innerWidth - rect.right < 160);
+    }
+    setOpen((o) => !o);
+  };
+
   return (
     <div ref={ref} className="absolute -top-1.5 -right-1.5 z-20">
       <button
-        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        onClick={handleToggle}
         className="w-5 h-5 rounded-full border-2 border-white shadow-sm cursor-pointer hover:scale-110 transition-transform"
         style={{ backgroundColor: color }}
         aria-label="Change color"
       />
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-200 p-2 flex flex-wrap gap-1.5 w-36 z-50">
+        <div className={`absolute bg-white rounded-xl shadow-xl border border-gray-200 p-2 flex flex-wrap gap-1.5 w-36 z-50
+          ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'}
+          ${dropLeft ? 'right-0' : 'left-1/2 -translate-x-1/2'}
+        `}>
           {presets.map((c) => (
             <button
               key={c}
@@ -174,8 +231,10 @@ function EditableText({
 
   const isEmpty = !value || value.trim() === '';
 
+  const isInline = Tag === 'span';
+
   return (
-    <div className="relative group w-full">
+    <div className={`relative group ${isInline ? 'inline-block' : 'w-full'}`}>
       <Tag
         ref={ref}
         contentEditable
@@ -200,8 +259,8 @@ function EditableText({
           {placeholder}
         </span>
       )}
-      {/* Subtle pencil icon on hover */}
-      {!focused && (
+      {/* Subtle pencil icon on hover — only shown when no color picker is present */}
+      {!focused && !pickerColor && (
         <span className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm pointer-events-none">
           ✎
         </span>
@@ -290,6 +349,8 @@ export default function CheckoutBuilder() {
     description:
       'This course is designed to help you discover insights towards the connection to oneself as well as a greater connection to all.\n\nWhether you\'re looking for personal growth, inspiration, or simply a new approach to your inner landscape, this course has something for everyone.\n\nUnlock instant access to Jordan River\'s course on how to "Explore your Nature"',
     price: '33.00',
+    discountMode: false,
+    originalPrice: '',
     italicText:
       'Feeling disconnected in a fast-paced world? Your true nature is waiting to be explored.\n\nIn a world that moves fast, pause and come home to yourself.\n\nYou weren\'t made to keep up — you were made to root down, remember, and rise up!\n\nIf you\'re feeling lost, uninspired, and overwhelmed: That\'s not who you are — it\'s just a sign you\'ve been too far from your nature.\n\nBehind the noise of modern life is a quiet truth: your nature holds the key to your joy.',
     secondaryText:
@@ -301,6 +362,7 @@ export default function CheckoutBuilder() {
     checkoutUrl: 'https://square.link/u/JaOryQ09',
     ctaLabel: 'Scroll to Checkout',
     footerName: 'Jordan Rivers',
+    almostThere: "You're almost there!",
     colors: {},
   });
 
@@ -393,8 +455,15 @@ export default function CheckoutBuilder() {
           )}
           {pageData.price && (
             <div className="mb-4 text-center">
-              <div className="text-2xl font-bold mb-1" style={{ color: getColor('price', 'primary') }}>${pageData.price}</div>
-              <div className="font-semibold" style={{ color: getColor('almostThere', 'secondary') }}>You're almost there!</div>
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {pageData.discountMode && pageData.originalPrice && (
+                  <span className="text-2xl font-bold line-through text-gray-700">
+                    ${pageData.originalPrice}
+                  </span>
+                )}
+                <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>${pageData.price}</span>
+              </div>
+              <div className="font-semibold" style={{ color: getColor('almostThere', 'secondary') }}>{pageData.almostThere || "You're almost there!"}</div>
             </div>
           )}
           {pageData.italicText && (
@@ -492,7 +561,7 @@ export default function CheckoutBuilder() {
       </div>
 
       {/* The card — same layout as CheckoutPage */}
-      <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-5 sm:p-8">
+      <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-visible p-5 sm:p-8">
         {/* Hero image */}
         <BuilderTip tip={TIPS.heroImage}>
           <EditableImage
@@ -533,23 +602,58 @@ export default function CheckoutBuilder() {
 
         {/* Price */}
         <BuilderTip tip={TIPS.price}>
-          <div className="flex items-center justify-center gap-1 mb-2">
-            <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>$</span>
-            <EditableText
-              value={pageData.price}
-              onChange={set('price')}
-              placeholder="0.00"
-              className="text-2xl font-bold"
-              tag="span"
-              style={{ color: getColor('price', 'primary') }}
-              pickerColor={getColor('price', 'primary')}
-              onColorChange={setColor('price')}
-              colorPresets={colorPresets}
-            />
+          <div className="flex flex-col items-center mb-2">
+            {/* Price row: [strikeout] [discounted] — always single line */}
+            <div className="flex flex-nowrap items-center justify-center gap-3">
+              {pageData.discountMode && (
+                <div className="flex items-center gap-0.5">
+                  <span className="text-2xl font-bold line-through text-gray-700">$</span>
+                  <EditableText
+                    value={pageData.originalPrice}
+                    onChange={set('originalPrice')}
+                    placeholder="49.00"
+                    className="text-2xl font-bold inline-block min-w-[3rem] text-gray-700"
+                    tag="span"
+                  />
+                </div>
+              )}
+              <div className="flex items-center gap-0.5">
+                <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>$</span>
+                <EditableText
+                  value={pageData.price}
+                  onChange={set('price')}
+                  placeholder="0.00"
+                  className="text-2xl font-bold"
+                  tag="span"
+                  style={{ color: getColor('price', 'primary') }}
+                  pickerColor={getColor('price', 'primary')}
+                  onColorChange={setColor('price')}
+                  colorPresets={colorPresets}
+                />
+              </div>
+            </div>
+            {/* Discount toggle — sits below the numbers */}
+            <button
+              onClick={() => setPageData((prev) => ({ ...prev, discountMode: !prev.discountMode }))}
+              className={`mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border transition cursor-pointer ${
+                pageData.discountMode
+                  ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
+                  : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+              }`}
+            >
+              {pageData.discountMode ? '✕ Remove discount' : '% Add discount'}
+            </button>
           </div>
-          <div className="font-semibold mb-4 text-center" style={{ color: getColor('almostThere', 'secondary') }}>
-            You're almost there!
-          </div>
+          <EditableText
+            value={pageData.almostThere}
+            onChange={set('almostThere')}
+            placeholder="You're almost there!"
+            className="font-semibold mb-4 text-center"
+            style={{ color: getColor('almostThere', 'secondary') }}
+            pickerColor={getColor('almostThere', 'secondary')}
+            onColorChange={setColor('almostThere')}
+            colorPresets={colorPresets}
+          />
         </BuilderTip>
 
         {/* Italic emphasis text */}
@@ -579,12 +683,12 @@ export default function CheckoutBuilder() {
         </BuilderTip>
 
         {/* Closing word */}
-        <BuilderTip tip={TIPS.closingWord} className="flex justify-center">
+        <BuilderTip tip={TIPS.closingWord} className="flex justify-center mb-8">
           <EditableText
             value={pageData.closingWord}
             onChange={set('closingWord')}
             placeholder="Exploration."
-            className="mb-8 text-center italic text-2xl"
+            className="text-center italic text-2xl"
             tag="span"
             style={{ color: getColor('closingWord', 'primary') }}
             pickerColor={getColor('closingWord', 'primary')}
