@@ -361,6 +361,7 @@ export default function CheckoutBuilder() {
     subtitle: 'Click below for a one on one exploration with a trusted guide:',
     checkoutUrl: 'https://square.link/u/JaOryQ09',
     ctaLabel: 'Scroll to Checkout',
+    buyButtonLabel: '($33.00 USD)',
     footerName: 'Jordan Rivers',
     almostThere: "You're almost there!",
     colors: {},
@@ -425,7 +426,7 @@ export default function CheckoutBuilder() {
   if (preview) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-4">
-        <div className="sticky top-0 z-50 w-full max-w-xl flex justify-between items-center bg-white/90 backdrop-blur border-b border-gray-200 px-4 sm:px-6 py-3 rounded-t-2xl mb-0">
+        <div className="sticky top-0 z-50 w-full max-w-xl lg:max-w-5xl flex justify-between items-center bg-white/90 backdrop-blur border-b border-gray-200 px-4 sm:px-6 py-3 rounded-t-2xl mb-0">
           <span className="text-sm font-semibold text-gray-500">Preview Mode</span>
           <button
             onClick={() => setPreview(false)}
@@ -435,75 +436,82 @@ export default function CheckoutBuilder() {
           </button>
         </div>
 
-        <div className="bg-white rounded-b-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-hidden p-5 sm:p-8">
-          {pageData.mainImage && (
-            <img src={pageData.mainImage} alt="Product" className="rounded-lg mb-4 w-full object-cover" />
-          )}
-          {pageData.description && (
-            <div className="text-gray-600 mb-6 text-center whitespace-pre-line">
-              <p>{pageData.description}</p>
-              <div className="mt-6 flex justify-center">
-                <button
-                  onClick={handleScrollToCheckout}
-                  className="px-6 py-2 text-white rounded font-semibold shadow hover:opacity-90 transition cursor-pointer"
-                  style={{ backgroundColor: getColor('ctaButton', 'primary') }}
+        <div className="bg-white rounded-b-2xl shadow-lg max-w-xl lg:max-w-5xl w-full overflow-visible p-5 sm:p-8">
+          <div className="lg:flex lg:gap-10 lg:items-start">
+            {/* Left column — content (scrollable on desktop) */}
+            <div className="flex flex-col items-center lg:flex-1 lg:min-w-0">
+              {pageData.mainImage && (
+                <img src={pageData.mainImage} alt="Product" className="rounded-lg mb-4 w-full object-cover" />
+              )}
+              {pageData.description && (
+                <div className="text-gray-600 mb-6 text-center whitespace-pre-line">
+                  <p>{pageData.description}</p>
+                  <div className="mt-6 flex justify-center lg:hidden">
+                    <button
+                      onClick={handleScrollToCheckout}
+                      className="px-6 py-2 text-white rounded font-semibold shadow hover:opacity-90 transition cursor-pointer"
+                      style={{ backgroundColor: getColor('ctaButton', 'primary') }}
+                    >
+                      {pageData.ctaLabel || 'Scroll to Checkout'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {pageData.price && (
+                <div className="mb-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    {pageData.discountMode && pageData.originalPrice && (
+                      <span className="text-2xl font-bold line-through text-gray-700">
+                        ${pageData.originalPrice}
+                      </span>
+                    )}
+                    <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>${pageData.price}</span>
+                  </div>
+                  <div className="font-semibold" style={{ color: getColor('almostThere', 'secondary') }}>{pageData.almostThere || "You're almost there!"}</div>
+                </div>
+              )}
+              {pageData.italicText && (
+                <p className="mb-6 text-center italic text-lg whitespace-pre-line" style={{ color: getColor('italicText', 'accent') }}>{pageData.italicText}</p>
+              )}
+              {pageData.secondaryText && (
+                <p className="text-gray-600 mb-2 text-center whitespace-pre-line">{pageData.secondaryText}</p>
+              )}
+              {pageData.closingWord && (
+                <p className="mb-8 text-center italic text-2xl" style={{ color: getColor('closingWord', 'primary') }}>{pageData.closingWord}</p>
+              )}
+              {pageData.additionalImages.filter(Boolean).map((img, i) => (
+                <img key={i} src={img} alt={`Supplementary ${i + 1}`} className="rounded-lg mb-4 w-full object-cover" />
+              ))}
+            </div>
+
+            {/* Right column — buy section (sticky on desktop) */}
+            <div ref={formRef} className="w-full flex flex-col items-center pt-8 lg:pt-0 lg:w-96 lg:shrink-0 lg:sticky lg:top-24">
+              <h1 className="text-2xl font-bold mb-4 text-center" style={{ color: getColor('title', 'accent') }}>{pageData.title || 'Your heading here'}</h1>
+              {pageData.subtitle && (
+                <p className="text-gray-600 text-sm mb-4 text-center">{pageData.subtitle}</p>
+              )}
+              {pageData.checkoutUrl && (
+                <a
+                  href={pageData.checkoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-2 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
                 >
-                  {pageData.ctaLabel || 'Scroll to Checkout'}
-                </button>
+                  <img src="/images/Square_LogoLockup_Black.png" alt="Square" className="h-18 w-auto" />
+                  {pageData.buyButtonLabel || `($${pageData.price || '—'} USD)`}
+                </a>
+              )}
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <svg className="w-6 h-6" style={{ color: getColor('secure', 'secondary') }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M12 11V7a4 4 0 1 1 8 0v4M5 11V7a7 7 0 0 1 14 0v4M5 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" />
+                </svg>
+                <span className="text-gray-600 text-sm">100% Secure Checkout</span>
               </div>
-            </div>
-          )}
-          {pageData.price && (
-            <div className="mb-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                {pageData.discountMode && pageData.originalPrice && (
-                  <span className="text-2xl font-bold line-through text-gray-700">
-                    ${pageData.originalPrice}
-                  </span>
-                )}
-                <span className="text-2xl font-bold" style={{ color: getColor('price', 'primary') }}>${pageData.price}</span>
-              </div>
-              <div className="font-semibold" style={{ color: getColor('almostThere', 'secondary') }}>{pageData.almostThere || "You're almost there!"}</div>
-            </div>
-          )}
-          {pageData.italicText && (
-            <p className="mb-6 text-center italic text-lg whitespace-pre-line" style={{ color: getColor('italicText', 'accent') }}>{pageData.italicText}</p>
-          )}
-          {pageData.secondaryText && (
-            <p className="text-gray-600 mb-2 text-center whitespace-pre-line">{pageData.secondaryText}</p>
-          )}
-          {pageData.closingWord && (
-            <p className="mb-8 text-center italic text-2xl" style={{ color: getColor('closingWord', 'primary') }}>{pageData.closingWord}</p>
-          )}
-          {pageData.additionalImages.filter(Boolean).map((img, i) => (
-            <img key={i} src={img} alt={`Supplementary ${i + 1}`} className="rounded-lg mb-4 w-full object-cover" />
-          ))}
-          <div ref={formRef} className="w-full flex flex-col items-center pt-8">
-            <h1 className="text-2xl font-bold mb-4 text-center" style={{ color: getColor('title', 'accent') }}>{pageData.title || 'Your heading here'}</h1>
-            {pageData.subtitle && (
-              <p className="text-gray-600 text-sm mb-4 text-center">{pageData.subtitle}</p>
-            )}
-            {pageData.checkoutUrl && (
-              <a
-                href={pageData.checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg mt-2 hover:bg-gray-300 transition cursor-pointer text-center flex items-center justify-center gap-2"
-              >
-                <img src="/images/Square_LogoLockup_Black.png" alt="Square" className="h-18 w-auto" />
-                ({pageData.price ? `$${pageData.price}` : '—'} USD)
-              </a>
-            )}
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <svg className="w-6 h-6" style={{ color: getColor('secure', 'secondary') }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M12 11V7a4 4 0 1 1 8 0v4M5 11V7a7 7 0 0 1 14 0v4M5 11v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V11" />
-              </svg>
-              <span className="text-gray-600 text-sm">100% Secure Checkout</span>
+              <footer className="mt-8 text-center text-gray-600 text-sm">
+                <p>&copy; {new Date().getFullYear()} {pageData.footerName || 'Your Name'}. All rights reserved.</p>
+              </footer>
             </div>
           </div>
-          <footer className="mt-8 text-center text-gray-600 text-sm">
-            <p>&copy; {new Date().getFullYear()} {pageData.footerName || 'Your Name'}. All rights reserved.</p>
-          </footer>
         </div>
       </div>
     );
@@ -515,7 +523,7 @@ export default function CheckoutBuilder() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-3 sm:px-4">
       {/* Sticky toolbar */}
-      <div className="sticky top-0 z-50 w-full max-w-xl bg-white/95 backdrop-blur-md shadow-sm border border-gray-200 rounded-xl mb-4 overflow-hidden">
+      <div className="sticky top-0 z-50 w-full max-w-xl lg:max-w-5xl bg-white/95 backdrop-blur-md shadow-sm border border-gray-200 rounded-xl mb-4 overflow-hidden">
         <div className="flex justify-between items-center px-4 sm:px-6 py-3">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -561,7 +569,10 @@ export default function CheckoutBuilder() {
       </div>
 
       {/* The card — same layout as CheckoutPage */}
-      <div className="bg-white rounded-2xl shadow-lg max-w-xl w-full flex flex-col items-center overflow-visible p-5 sm:p-8">
+      <div className="bg-white rounded-2xl shadow-lg max-w-xl lg:max-w-5xl w-full overflow-visible p-5 sm:p-8">
+        <div className="lg:flex lg:gap-10 lg:items-start">
+        {/* Left column — content */}
+        <div className="flex flex-col items-center lg:flex-1 lg:min-w-0">
         {/* Hero image */}
         <BuilderTip tip={TIPS.heroImage}>
           <EditableImage
@@ -583,20 +594,26 @@ export default function CheckoutBuilder() {
           />
         </BuilderTip>
 
-        {/* CTA button label */}
-        <BuilderTip tip={TIPS.ctaButton} className="flex justify-center">
-          <EditableText
-            value={pageData.ctaLabel}
-            onChange={set('ctaLabel')}
-            placeholder="Scroll to Checkout"
-            className="inline-block px-6 py-2 text-white rounded font-semibold shadow text-center"
-            tag="span"
-            style={{ backgroundColor: getColor('ctaButton', 'primary') }}
-            pickerColor={getColor('ctaButton', 'primary')}
-            onColorChange={setColor('ctaButton')}
-            colorPresets={colorPresets}
-          />
-        </BuilderTip>
+        {/* CTA button label — always visible in editor, hidden on desktop in preview/published */}
+        <div className="w-full">
+          <BuilderTip tip={TIPS.ctaButton} className="flex flex-col items-center justify-center gap-1">
+            <EditableText
+              value={pageData.ctaLabel}
+              onChange={set('ctaLabel')}
+              placeholder="Scroll to Checkout"
+              className="inline-block px-6 py-2 text-white rounded font-semibold shadow text-center"
+              tag="span"
+              style={{ backgroundColor: getColor('ctaButton', 'primary') }}
+              pickerColor={getColor('ctaButton', 'primary')}
+              onColorChange={setColor('ctaButton')}
+              colorPresets={colorPresets}
+            />
+            <span className="hidden lg:inline-flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5 mt-1">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+              Hidden on desktop — only visible on mobile &amp; tablet
+            </span>
+          </BuilderTip>
+        </div>
 
         <div className="h-6" />
 
@@ -725,9 +742,10 @@ export default function CheckoutBuilder() {
             + Add another image
           </button>
         </div>
+        </div>{/* end left column */}
 
-        {/* Checkout section */}
-        <div ref={formRef} className="w-full flex flex-col items-center pt-8">
+        {/* Right column — buy section (sticky on desktop) */}
+        <div ref={formRef} className="w-full flex flex-col items-center pt-8 lg:pt-0 lg:w-96 lg:shrink-0 lg:sticky lg:top-24">
           <BuilderTip tip={TIPS.checkoutTitle}>
             <EditableText
               value={pageData.title}
@@ -766,7 +784,13 @@ export default function CheckoutBuilder() {
 
           <div className="w-full bg-gray-200 text-black py-3 rounded font-bold text-lg text-center flex items-center justify-center gap-2">
             <img src="/images/Square_LogoLockup_Black.png" alt="Square" className="h-18 w-auto" />
-            ({pageData.price ? `$${pageData.price}` : '—'} USD)
+            <EditableText
+              value={pageData.buyButtonLabel}
+              onChange={set('buyButtonLabel')}
+              placeholder="($33.00 USD)"
+              className="font-bold text-lg text-black"
+              tag="span"
+            />
           </div>
 
           <div className="flex items-center justify-center gap-2 mt-6">
@@ -775,22 +799,23 @@ export default function CheckoutBuilder() {
             </svg>
             <span className="text-gray-600 text-sm">100% Secure Checkout</span>
           </div>
-        </div>
 
-        <BuilderTip tip={TIPS.footer}>
-          <footer className="mt-8 text-center text-gray-600 text-sm">
-            <span>&copy; {new Date().getFullYear()}{' '}</span>
-            <EditableText
-              value={pageData.footerName}
-              onChange={set('footerName')}
-              placeholder="Your Name"
-              className="inline text-gray-600 text-sm"
-              tag="span"
-            />
-            <span>. All rights reserved.</span>
-          </footer>
-        </BuilderTip>
-      </div>
+          <BuilderTip tip={TIPS.footer}>
+            <footer className="mt-8 text-center text-gray-600 text-sm">
+              <span>&copy; {new Date().getFullYear()}{' '}</span>
+              <EditableText
+                value={pageData.footerName}
+                onChange={set('footerName')}
+                placeholder="Your Name"
+                className="inline text-gray-600 text-sm"
+                tag="span"
+              />
+              <span>. All rights reserved.</span>
+            </footer>
+          </BuilderTip>
+        </div>{/* end right column */}
+        </div>{/* end lg:flex */}
+      </div>{/* end card */}
 
       <button
         onClick={() => navigate('/')}
