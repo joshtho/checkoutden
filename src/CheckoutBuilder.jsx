@@ -8,6 +8,7 @@ import EditableImage from './builder/EditableImage';
 import IntroModal from './builder/IntroModal';
 import EditorToolbar from './builder/EditorToolbar';
 import PreviewMode from './builder/PreviewMode';
+import Navbar from './Navbar';
 
 export default function CheckoutBuilder() {
   const navigate = useNavigate();
@@ -85,7 +86,9 @@ export default function CheckoutBuilder() {
 
   // --- Editor mode ---
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-3 sm:px-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center">
+      <Navbar />
+      <div className="w-full flex flex-col items-center py-4 sm:py-8 px-3 sm:px-4">
       {showIntro && (
         <IntroModal
           onContinue={() => { setShowIntro(false); setPageData((p) => ({ ...p, isBlank: false })); }}
@@ -345,6 +348,7 @@ export default function CheckoutBuilder() {
       >
         ← Back to Home
       </button>
+      </div>
     </div>
   );
 }
